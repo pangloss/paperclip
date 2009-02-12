@@ -12,7 +12,7 @@ module Paperclip
     # set, the options will be appended to the convert command upon image conversion 
     def initialize file, options = {}, attachment = nil
       super
-      geometry          = options[:geometry]
+      geometry          = options[:geometry] || ''
       @file             = file
       @crop             = geometry[-1,1] == '#'
       @target_geometry  = Geometry.parse geometry
@@ -61,7 +61,8 @@ module Paperclip
     # into the thumbnail.
     def transformation_command
       scale, crop = @current_geometry.transformation_to(@target_geometry, crop?)
-      trans = "-resize \"#{scale}\""
+      trans = ''
+      trans << "-resize \"#{scale}\"" if scale
       trans << " -crop \"#{crop}\" +repage" if crop
       trans << " #{convert_options}" if convert_options?
       trans

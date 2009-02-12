@@ -26,7 +26,9 @@ module Paperclip
 
     # Parses a "WxH" formatted string, where W is the width and H is the height.
     def self.parse string
-      if match = (string && string.match(/\b(\d*)x?(\d*)\b([\>\<\#\@\%^!])?/))
+      if string.blank?
+        nil
+      elsif match = (string && string.match(/\b(\d*)x?(\d*)\b([\>\<\#\@\%^!])?/))
         Geometry.new(*match[1,3])
       end
     end
@@ -82,16 +84,24 @@ module Paperclip
     # destination Geometry would be completely filled by the source image, and any 
     # overhanging image would be cropped. Useful for square thumbnail images. The cropping 
     # is weighted at the center of the Geometry.
+    #
+    # If the destination geometry is nil, return nil scale and crop which enables
+    # transformation calls to be made without specifying any resize flag. For
+    # instance, using convert_options a user may draw text on an image without
+    # resizing it.
     def transformation_to dst, crop = false
-      if crop
-        ratio = Geometry.new( dst.width / self.width, dst.height / self.height )
-        scale_geometry, scale = scaling(dst, ratio)
-        crop_geometry         = cropping(dst, ratio, scale)
+      if dst
+        if crop
+          ratio = Geometry.new( dst.width / self.width, dst.height / self.height )
+          scale_geometry, scale = scaling(dst, ratio)
+          crop_geometry         = cropping(dst, ratio, scale)
+        else
+          scale_geometry        = dst.to_s
+        end
+        [ scale_geometry, crop_geometry ]
       else
-        scale_geometry        = dst.to_s
+        [ nil, nil ]
       end
-
-      [ scale_geometry, crop_geometry ]
     end
 
     private
