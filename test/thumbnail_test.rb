@@ -142,6 +142,45 @@ class ThumbnailTest < Test::Unit::TestCase
     end
   end
 
+  context "being thumbnailed with nil geometry" do
+    setup do
+      @file = File.new(File.join(File.dirname(__FILE__), "fixtures", "5k.png"), 'rb')
+      @thumb = Paperclip::Thumbnail.new(@file, :geometry => nil)
+    end
+
+    teardown { @file.close }
+
+    should "report its correct current and target geometries" do
+      assert_nil @thumb.target_geometry
+      assert_equal "434x66", @thumb.current_geometry.to_s
+    end
+
+    should "report its correct format" do
+      assert_nil @thumb.format
+    end
+
+    should "have whiny turned on by default" do
+      assert @thumb.whiny
+    end
+    
+    should "have convert_options set to nil by default" do
+      assert_equal nil, @thumb.convert_options
+    end
+
+    should "send the right command to convert when sent #make" do
+      Paperclip::Tempfile.expects(:new).returns(mock('Tempfile', :binmode => nil, :path => 'some_path'))
+      Paperclip.expects(:"`").with do |arg|
+        arg.match %r{^convert +"#{File.expand_path(@thumb.file.path)}\[0\]" +"[^"]*" +2>/dev/null *$}
+      end
+      @thumb.make
+    end
+
+    should "create the thumbnail when sent #make" do
+      dst = @thumb.make
+      assert_match /434x66/, `identify "#{dst.path}"`
+    end
+  end
+    
   context "A multipage PDF" do
     setup do
       @file = File.new(File.join(File.dirname(__FILE__), "fixtures", "twopage.pdf"), 'rb')

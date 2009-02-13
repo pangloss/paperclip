@@ -49,6 +49,19 @@ class GeometryTest < Test::Unit::TestCase
       assert_nil @geo.modifier
     end
 
+    should "not be generated if the string is blank" do
+      assert_nil Paperclip::Geometry.parse('')
+    end
+
+    should 'not be generated if the arguement is nil' do
+      assert_nil Paperclip::Geometry.parse(nil)
+    end
+
+    should 'do nothing for transformation_to nil' do
+      @geo = Paperclip::Geometry.new(100, 200)
+      assert_equal [nil, nil], @geo.transformation_to(nil)
+    end
+
     ['>', '<', '#', '@', '%', '^', '!', nil].each do |mod|
       should "ensure the modifier #{mod.inspect} is preserved" do
         assert @geo = Paperclip::Geometry.parse("123x456#{mod}")
