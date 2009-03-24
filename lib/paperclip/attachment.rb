@@ -310,13 +310,15 @@ module Paperclip
             :convert_options => extra_options_for(name)
           }
         else
-          @styles[name] = {
-            :processors => @processors,
-            :whiny => @whiny,
-            :convert_options => extra_options_for(name)
-          }.merge(@styles[name])
+          @styles[name] = default_style_hash(name).merge(@styles[name])
         end
       end
+    end
+
+    def default_style_hash(name)
+      { :processors => @processors,
+        :whiny => @whiny,
+        :convert_options => extra_options_for(name) }
     end
 
     def solidify_style_definitions #:nodoc:

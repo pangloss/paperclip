@@ -28,7 +28,7 @@ module Paperclip
     def self.parse string
       if string.blank?
         nil
-      elsif match = (string && string.match(/\b(\d*)x?(\d*)\b([\>\<\#\@\%^!])?/))
+      elsif match = (string && string.match(/\b(\d*)x?(\d*)\b([<>^v]*#|[\>\<\@\%^!])?$/))
         Geometry.new(*match[1,3])
       end
     end
@@ -116,9 +116,15 @@ module Paperclip
 
     def cropping dst, ratio, scale
       if ratio.horizontal? || ratio.square?
-        "%dx%d+%d+%d" % [ dst.width, dst.height, 0, (self.height * scale - dst.height) / 2 ]
+        vertical = (self.height * scale - dst.height) / 2 # default to center
+        vertical = 0 if dst.modifier.include? '^' # top
+        #raise (self.height * scale - dst.height).inspect if dst.modifier.include? 'v' # bottom
+        "%dx%d+%d+%d" % [ dst.width, dst.height, 0, vertical ]
       else
-        "%dx%d+%d+%d" % [ dst.width, dst.height, (self.width * scale - dst.width) / 2, 0 ]
+        horizontal = (self.width * scale - dst.width) / 2 # default to center
+        horizontal = 0 if dst.modifier.include? '<' # left
+        #horizontal = (self.width * scale - dst.width)  if dst.modifier.include? '>' # right
+        "%dx%d+%d+%d" % [ dst.width, dst.height, horizontal, 0 ]
       end
     end
   end
